@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.chatbot.chatbot_backend.dto.ClientResponse;
+import com.chatbot.chatbot_backend.dto.LoginRequest;
+import com.chatbot.chatbot_backend.dto.LoginResponse;
 import com.chatbot.chatbot_backend.dto.RegisterRequest;
 import com.chatbot.chatbot_backend.entity.Client;
 import com.chatbot.chatbot_backend.service.ClientService;
@@ -65,4 +67,9 @@ public ResponseEntity<ClientResponse> getClientByEmail(@RequestParam String emai
         return ResponseEntity.noContent().build();
     }
 
+    // login
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        return ResponseEntity.ok(clientService.login(request));
+}
 }

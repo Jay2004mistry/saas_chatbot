@@ -8,17 +8,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.chatbot.chatbot_backend.dto.ClientResponse;
+import com.chatbot.chatbot_backend.dto.LoginRequest;
+import com.chatbot.chatbot_backend.dto.LoginResponse;
 import com.chatbot.chatbot_backend.dto.RegisterRequest;
 import com.chatbot.chatbot_backend.entity.Client;
 import com.chatbot.chatbot_backend.repository.ClientRepository;
+import com.chatbot.chatbot_backend.security.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 
 @Service
+// because of the @RequiredArgsConstructor annotation, Spring will automatically inject the required dependencies 
+// (PasswordEncoder, ClientRepository, JwtUtil) into the ClientService class when it is instantiated.
+//  This allows us to use these dependencies without having to manually create instances of them or manage their lifecycle.
+// thats why we do not required to write Autowired annotation for each dependency, Spring will handle it for us.
 @RequiredArgsConstructor
 public class ClientService {
     private final PasswordEncoder passwordEncoder;
     private final ClientRepository clientRepository;
+    private final JwtUtil jwtUtil;
 
 
 
@@ -85,5 +93,21 @@ public class ClientService {
     return response;
 }
 
-	}
+
+// login
+    public LoginResponse login(LoginRequest request) {
+        Client client=clientRepository.getClientByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        if (!passwordEncoder.matches(request.getPassword(), client.getPassword())) {
+            throw new RuntimeException("Invalid email or password");
+            }
+
+        if (!client.isActive()) {
+            throw new RuntimeException("Account not activated");
+        }
+            String token = jwtUtil.generateToken(client.getEmail(), client.getId());
+
+        return new LoginResponse(token, client.getId(), client.getBusinessName(), client.getPlan());
+    }
+}
 
